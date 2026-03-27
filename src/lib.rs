@@ -1,32 +1,35 @@
 #![no_std]
 
-use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, Address, Env, String, Symbol};
+use soroban_sdk::{contractimpl, symbol_short, Address, Env, IntoVal, TryFromVal};
 
-#[contracttype]
+// ------------------- Data Keys -------------------
+
+#[derive(Clone)]
 pub enum DataKey {
     Voucher(Symbol),
     Merchant(Address),
 }
 
-#[contracttype]
+// ------------------- Voucher Struct -------------------
+
+#[derive(Clone, Debug, Eq, PartialEq, IntoVal, TryFromVal)]
 pub struct Voucher {
     pub id: Symbol,
-    pub ngo: Address,
-    pub recipient: Address,
-    pub merchant: Address,
     pub amount: i128,
     pub redeemed: bool,
-    pub valid_until: u64,
 }
 
-#[contracttype]
+// ------------------- Merchant Struct -------------------
+
+#[derive(Clone, Debug, Eq, PartialEq, IntoVal, TryFromVal)]
 pub struct Merchant {
-    pub name: String,
-    pub location: String,
-    pub is_active: bool,
+    pub name: Symbol,
+    pub total_redeemed: i128,
 }
 
-#[event]
+// ------------------- Events -------------------
+
+#[derive(Clone, Debug, Eq, PartialEq, IntoVal, TryFromVal)]
 pub struct VoucherIssued {
     pub id: Symbol,
     pub ngo: Address,
@@ -36,19 +39,21 @@ pub struct VoucherIssued {
     pub valid_until: u64,
 }
 
-#[event]
+#[derive(Clone, Debug, Eq, PartialEq, IntoVal, TryFromVal)]
 pub struct VoucherRedeemed {
     pub id: Symbol,
     pub merchant: Address,
     pub amount: i128,
 }
 
-#[contract]
-pub struct WhereDidItGo;
+// ------------------- Contract Implementation -------------------
+
+pub struct VoucherContract;
 
 #[contractimpl]
-impl WhereDidItGo {
-    pub fn issue_voucher(
+impl VoucherContract {
+    // Issue a voucher
+    pub fn issue(
         env: Env,
         id: Symbol,
         ngo: Address,
@@ -59,18 +64,14 @@ impl WhereDidItGo {
     ) {
         let voucher = Voucher {
             id: id.clone(),
-            ngo,
-            recipient,
-            merchant: merchant.clone(),
             amount,
             redeemed: false,
-            valid_until,
         };
 
-        env.storage().set_contract_data(&DataKey::Voucher(id.clone()), &voucher);
+        env.storage().set(&DataKey::Voucher(id.clone()), &voucher);
 
         env.events().publish(
-            (symbol_short!("VoucherIssued"),),
+            (symbol_short!("VIssued"),),
             VoucherIssued {
                 id,
                 ngo,
@@ -82,24 +83,34 @@ impl WhereDidItGo {
         );
     }
 
+    // Redeem a voucher
     pub fn redeem(env: Env, id: Symbol, merchant: Address) {
         let mut voucher: Voucher = env
             .storage()
-            .get_contract_data(&DataKey::Voucher(id.clone()))
+            .get(&DataKey::Voucher(id.clone()))
             .expect("Voucher not found");
 
         if voucher.redeemed {
             panic!("Voucher already redeemed");
         }
-        if merchant != voucher.merchant {
-            panic!("Unauthorized merchant");
-        }
 
         voucher.redeemed = true;
-        env.storage().set_contract_data(&DataKey::Voucher(id.clone()), &voucher);
+        env.storage().set(&DataKey::Voucher(id.clone()), &voucher);
+
+        // Update merchant data
+        let mut merchant_info: Merchant = env
+            .storage()
+            .get(&DataKey::Merchant(merchant.clone()))
+            .unwrap_or(Merchant {
+                name: symbol_short!("Unknown"),
+                total_redeemed: 0,
+            });
+
+        merchant_info.total_redeemed += voucher.amount;
+        env.storage().set(&DataKey::Merchant(merchant.clone()), &merchant_info);
 
         env.events().publish(
-            (symbol_short!("VoucherRedeemed"),),
+            (symbol_short!("VRedeemed"),),
             VoucherRedeemed {
                 id,
                 merchant,
@@ -108,34 +119,13 @@ impl WhereDidItGo {
         );
     }
 
-    pub fn register_merchant(env: Env, merchant: Address, name: String, location: String) {
-        let merchant_info = Merchant {
-            name,
-            location,
-            is_active: true,
-        };
-        env.storage().set_contract_data(&DataKey::Merchant(merchant), &merchant_info);
+    // Get voucher info
+    pub fn get_voucher(env: Env, id: Symbol) -> Option<Voucher> {
+        env.storage().get(&DataKey::Voucher(id))
     }
 
-    pub fn deregister_merchant(env: Env, merchant: Address) {
-        let mut merchant_info: Merchant = env
-            .storage()
-            .get_contract_data(&DataKey::Merchant(merchant))
-            .expect("Merchant not found");
-        merchant_info.is_active = false;
-        env.storage().set_contract_data(&DataKey::Merchant(merchant), &merchant_info);
-    }
-
-    pub fn is_merchant_active(env: Env, merchant: Address) -> bool {
-        match env.storage().get_contract_data::<_, Merchant>(&DataKey::Merchant(merchant)) {
-            Some(merchant_info) => merchant_info.is_active,
-            None => false,
-        }
-    }
-
-    pub fn get_voucher(env: Env, id: Symbol) -> Voucher {
-        env.storage()
-            .get_contract_data(&DataKey::Voucher(id))
-            .expect("Voucher not found")
+    // Get merchant info
+    pub fn get_merchant(env: Env, merchant: Address) -> Option<Merchant> {
+        env.storage().get(&DataKey::Merchant(merchant))
     }
 }
