@@ -4,8 +4,8 @@ use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, Address, E
 
 // ------------------- Data Keys -------------------
 
-#[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
+#[contracttype]
 pub enum DataKey {
     Voucher(Symbol),
     Merchant(Address),
@@ -13,8 +13,8 @@ pub enum DataKey {
 
 // ------------------- Voucher Struct -------------------
 
-#[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
+#[contracttype]
 pub struct Voucher {
     pub id: Symbol,
     pub amount: i128,
@@ -23,8 +23,8 @@ pub struct Voucher {
 
 // ------------------- Merchant Struct -------------------
 
-#[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
+#[contracttype]
 pub struct Merchant {
     pub name: Symbol,
     pub total_redeemed: i128,
@@ -32,8 +32,8 @@ pub struct Merchant {
 
 // ------------------- Events -------------------
 
-#[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
+#[contracttype]
 pub struct VoucherIssued {
     pub id: Symbol,
     pub ngo: Address,
@@ -43,8 +43,8 @@ pub struct VoucherIssued {
     pub valid_until: u64,
 }
 
-#[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
+#[contracttype]
 pub struct VoucherRedeemed {
     pub id: Symbol,
     pub merchant: Address,
