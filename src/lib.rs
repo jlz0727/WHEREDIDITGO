@@ -1,6 +1,6 @@
 #![no_std]
 
-use soroban_sdk::{contractimpl, contracttype, symbol_short, Address, Env, Symbol};
+use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, Address, Env, Symbol};
 
 // ------------------- Data Keys -------------------
 
@@ -53,6 +53,7 @@ pub struct VoucherRedeemed {
 
 // ------------------- Contract Implementation -------------------
 
+#[contract]
 pub struct VoucherContract;
 
 #[contractimpl]
@@ -72,7 +73,9 @@ impl VoucherContract {
             redeemed: false,
         };
 
-        env.storage().persistent().set(&DataKey::Voucher(id.clone()), &voucher);
+        env.storage()
+            .persistent()
+            .set(&DataKey::Voucher(id.clone()), &voucher);
 
         env.events().publish(
             (symbol_short!("VIssued"),),
@@ -99,7 +102,9 @@ impl VoucherContract {
         }
 
         voucher.redeemed = true;
-        env.storage().persistent().set(&DataKey::Voucher(id.clone()), &voucher);
+        env.storage()
+            .persistent()
+            .set(&DataKey::Voucher(id.clone()), &voucher);
 
         let mut merchant_info: Merchant = env
             .storage()
@@ -111,7 +116,9 @@ impl VoucherContract {
             });
 
         merchant_info.total_redeemed += voucher.amount;
-        env.storage().persistent().set(&DataKey::Merchant(merchant.clone()), &merchant_info);
+        env.storage()
+            .persistent()
+            .set(&DataKey::Merchant(merchant.clone()), &merchant_info);
 
         env.events().publish(
             (symbol_short!("VRedeemed"),),
