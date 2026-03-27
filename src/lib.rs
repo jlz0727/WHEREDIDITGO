@@ -1,10 +1,10 @@
 #![no_std]
 
-use soroban_sdk::{contractimpl, symbol_short, Address, Env, IntoVal, TryFromVal};
+use soroban_sdk::{contractimpl, contracttype, symbol_short, Address, Env, Symbol};
 
 // ------------------- Data Keys -------------------
 
-#[derive(Clone)]
+#[derive(Clone, Debug, Eq, PartialEq, contracttype)]
 pub enum DataKey {
     Voucher(Symbol),
     Merchant(Address),
@@ -12,7 +12,7 @@ pub enum DataKey {
 
 // ------------------- Voucher Struct -------------------
 
-#[derive(Clone, Debug, Eq, PartialEq, IntoVal, TryFromVal)]
+#[derive(Clone, Debug, Eq, PartialEq, contracttype)]
 pub struct Voucher {
     pub id: Symbol,
     pub amount: i128,
@@ -21,7 +21,7 @@ pub struct Voucher {
 
 // ------------------- Merchant Struct -------------------
 
-#[derive(Clone, Debug, Eq, PartialEq, IntoVal, TryFromVal)]
+#[derive(Clone, Debug, Eq, PartialEq, contracttype)]
 pub struct Merchant {
     pub name: Symbol,
     pub total_redeemed: i128,
@@ -29,7 +29,7 @@ pub struct Merchant {
 
 // ------------------- Events -------------------
 
-#[derive(Clone, Debug, Eq, PartialEq, IntoVal, TryFromVal)]
+#[derive(Clone, Debug, Eq, PartialEq, contracttype)]
 pub struct VoucherIssued {
     pub id: Symbol,
     pub ngo: Address,
@@ -39,7 +39,7 @@ pub struct VoucherIssued {
     pub valid_until: u64,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, IntoVal, TryFromVal)]
+#[derive(Clone, Debug, Eq, PartialEq, contracttype)]
 pub struct VoucherRedeemed {
     pub id: Symbol,
     pub merchant: Address,
@@ -68,7 +68,9 @@ impl VoucherContract {
             redeemed: false,
         };
 
-        env.storage().set(&DataKey::Voucher(id.clone()), &voucher);
+        env.storage()
+            .persistent()
+            .set(&DataKey::Voucher(id.clone()), &voucher);
 
         env.events().publish(
             (symbol_short!("VIssued"),),
@@ -87,6 +89,7 @@ impl VoucherContract {
     pub fn redeem(env: Env, id: Symbol, merchant: Address) {
         let mut voucher: Voucher = env
             .storage()
+            .persistent()
             .get(&DataKey::Voucher(id.clone()))
             .expect("Voucher not found");
 
@@ -95,11 +98,14 @@ impl VoucherContract {
         }
 
         voucher.redeemed = true;
-        env.storage().set(&DataKey::Voucher(id.clone()), &voucher);
+        env.storage()
+            .persistent()
+            .set(&DataKey::Voucher(id.clone()), &voucher);
 
         // Update merchant data
         let mut merchant_info: Merchant = env
             .storage()
+            .persistent()
             .get(&DataKey::Merchant(merchant.clone()))
             .unwrap_or(Merchant {
                 name: symbol_short!("Unknown"),
@@ -107,7 +113,9 @@ impl VoucherContract {
             });
 
         merchant_info.total_redeemed += voucher.amount;
-        env.storage().set(&DataKey::Merchant(merchant.clone()), &merchant_info);
+        env.storage()
+            .persistent()
+            .set(&DataKey::Merchant(merchant.clone()), &merchant_info);
 
         env.events().publish(
             (symbol_short!("VRedeemed"),),
@@ -121,11 +129,11 @@ impl VoucherContract {
 
     // Get voucher info
     pub fn get_voucher(env: Env, id: Symbol) -> Option<Voucher> {
-        env.storage().get(&DataKey::Voucher(id))
+        env.storage().persistent().get(&DataKey::Voucher(id))
     }
 
     // Get merchant info
     pub fn get_merchant(env: Env, merchant: Address) -> Option<Merchant> {
-        env.storage().get(&DataKey::Merchant(merchant))
+        env.storage().persistent().get(&DataKey::Merchant(merchant))
     }
 }
