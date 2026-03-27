@@ -52,7 +52,6 @@ pub struct VoucherContract;
 
 #[contractimpl]
 impl VoucherContract {
-    // Issue a voucher
     pub fn issue(
         env: Env,
         id: Symbol,
@@ -68,9 +67,7 @@ impl VoucherContract {
             redeemed: false,
         };
 
-        env.storage()
-            .persistent()
-            .set(&DataKey::Voucher(id.clone()), &voucher);
+        env.storage().persistent().set(&DataKey::Voucher(id.clone()), &voucher);
 
         env.events().publish(
             (symbol_short!("VIssued"),),
@@ -85,7 +82,6 @@ impl VoucherContract {
         );
     }
 
-    // Redeem a voucher
     pub fn redeem(env: Env, id: Symbol, merchant: Address) {
         let mut voucher: Voucher = env
             .storage()
@@ -98,11 +94,8 @@ impl VoucherContract {
         }
 
         voucher.redeemed = true;
-        env.storage()
-            .persistent()
-            .set(&DataKey::Voucher(id.clone()), &voucher);
+        env.storage().persistent().set(&DataKey::Voucher(id.clone()), &voucher);
 
-        // Update merchant data
         let mut merchant_info: Merchant = env
             .storage()
             .persistent()
@@ -113,9 +106,7 @@ impl VoucherContract {
             });
 
         merchant_info.total_redeemed += voucher.amount;
-        env.storage()
-            .persistent()
-            .set(&DataKey::Merchant(merchant.clone()), &merchant_info);
+        env.storage().persistent().set(&DataKey::Merchant(merchant.clone()), &merchant_info);
 
         env.events().publish(
             (symbol_short!("VRedeemed"),),
@@ -127,12 +118,10 @@ impl VoucherContract {
         );
     }
 
-    // Get voucher info
     pub fn get_voucher(env: Env, id: Symbol) -> Option<Voucher> {
         env.storage().persistent().get(&DataKey::Voucher(id))
     }
 
-    // Get merchant info
     pub fn get_merchant(env: Env, merchant: Address) -> Option<Merchant> {
         env.storage().persistent().get(&DataKey::Merchant(merchant))
     }
