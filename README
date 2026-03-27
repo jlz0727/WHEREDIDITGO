@@ -1,0 +1,26 @@
+# WHEREDIDITGO
+A Soroban smart contract for issuing and redeeming vouchers between NGOs and merchants on Stellar.
+---
+## Problem and Solution
+**Problem:**  
+NGOs often issue vouchers to beneficiaries, but tracking issuance, redemption, and balances across multiple merchants is error-prone and centralized.
+**Solution:**  
+WHEREDIDITGO provides a decentralized, verifiable system on Stellar using Soroban smart contracts to manage voucher issuance, redemption, and merchant balances securely and automatically.
+---
+## Timeline
+- **Week 1:** Project setup, Rust + Soroban environment configured.  
+- **Week 2:** Smart contract core structure and types implemented.  
+- **Week 3:** Voucher issuance and redemption functions added.  
+- **Week 4:** Event publishing, storage, and testing completed.  
+- **Week 5:** Build, test, and deploy on Stellar testnet.
+---
+## Stellar Features Used
+- Soroban smart contracts
+- WASM-based execution
+- Ledger-backed persistent storage
+- Event system for voucher state changes
+---
+## Prerequisites
+- **Rust**: latest stable version ([https://www.rust-lang.org/tools/install](https://www.rust-lang.org/tools/install))  
+- **Soroban CLI**: version 1.10+ ([https://soroban.stellar.org/docs/getting-started/cli](https://soroban.stellar.org/docs/getting-started/cli))  
+- **Target WASM**: `wasm32-unknown-unknown`  
