@@ -1,0 +1,16 @@
+--------------------------------------------------------
+#Contract ID
+CC7YADNVRSNPQRZYQ3S65XF77MCECRRRLDTYEVUNF5YFGI3L7NKSCEQX
+--------------------------------------------------------
+
+---------------------------------------------------------------------------------------------------------
+#Stellar Expert Link
+https://stellar.expert/explorer/testnet/contract/CC7YADNVRSNPQRZYQ3S65XF77MCECRRRLDTYEVUNF5YFGI3L7NKSCEQX
+---------------------------------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+#Short Description
+The WHEREDIDITGO smart contract on the Stellar network, written in Soroban, manages the issuance and redemption of vouchers for merchants or non-profits.
+It ensures the safe transfer of tokens between parties, the transparency of voucher management, and the implementation of redemption regulations.
+The process is auditable, fully decentralized, and on-chain.
+---------------------------------------------------------------------------------------------------------------------------------------------------------
